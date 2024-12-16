@@ -1,0 +1,27 @@
+                            General Page Wrapper
+App                             
+    no props, no state
+
+    Jobly Routes            Manages user state and handles routing.
+        state=isAdmin
+        state=user
+        state=isLoggedIn
+        props=user
+    
+    NavBar                  Displays navigation links based on user state.
+
+    Routes                  
+        Home
+            state=userState
+        CompaniesList
+            no state
+        JobsList
+            no state
+        Login
+            state=formData
+        RegisterForm
+            state=formData
+        UserProfile
+            state=user
+        Logout
+            Clears user state        
