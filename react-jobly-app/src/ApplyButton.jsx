@@ -20,8 +20,8 @@ const ApplyButton = ({ jobId }) => {
       const response = await JoblyApi.getUser(currentUser.username);
       console.log("Fetched user data:", response);
 
-      if (response?.data?.user?.applications) {
-        const appliedJobIds = response.data.user.applications;
+      if (response?.user?.applications) {
+        const appliedJobIds = response.user.applications;
         const hasAppliedStatus = appliedJobIds.includes(jobId);
         if (hasApplied !== hasAppliedStatus) {
           setHasApplied(hasAppliedStatus);
@@ -39,9 +39,8 @@ const ApplyButton = ({ jobId }) => {
         setHasApplied(false);
       }
     }
-  }, [currentUser, jobId, token, hasApplied, setHasApplied]);
+  }, [currentUser, jobId, token, hasApplied]);
 
-  // Run the checkIfApplied function when necessary
   useEffect(() => {
     checkIfApplied();
   }, [checkIfApplied]);
