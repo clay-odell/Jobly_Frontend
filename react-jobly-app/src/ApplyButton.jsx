@@ -8,6 +8,7 @@ const ApplyButton = ({ jobId }) => {
   const { currentUser, token } = useUser();
   const [hasApplied, setHasApplied] = useLocalStorage(`hasApplied-${jobId}`, null);
 
+  // Memoize the checkIfApplied function
   const checkIfApplied = useCallback(async () => {
     if (!token || !currentUser) {
       console.log("Token or currentUser is missing");
@@ -21,23 +22,32 @@ const ApplyButton = ({ jobId }) => {
 
       if (response?.data?.user?.applications) {
         const appliedJobIds = response.data.user.applications;
-        setHasApplied(appliedJobIds.includes(jobId));
-        console.log("Has applied:", appliedJobIds.includes(jobId));
+        const hasAppliedStatus = appliedJobIds.includes(jobId);
+        if (hasApplied !== hasAppliedStatus) {
+          setHasApplied(hasAppliedStatus);
+          console.log("Has applied:", hasAppliedStatus);
+        }
       } else {
-        setHasApplied(false);
-        console.log("User has no applications or data structure is different");
+        if (hasApplied !== false) {
+          setHasApplied(false);
+          console.log("User has no applications or data structure is different");
+        }
       }
     } catch (error) {
       console.error("There was an error fetching applied jobs", error);
-      setHasApplied(false);
+      if (hasApplied !== false) {
+        setHasApplied(false);
+      }
     }
-  }, [currentUser, jobId, token]);
+  }, [currentUser, jobId, token, hasApplied, setHasApplied]);
 
+  // Run the checkIfApplied function when necessary
   useEffect(() => {
     checkIfApplied();
   }, [checkIfApplied]);
 
-  const handleApply = async () => {
+  // Handle applying to a job
+  const handleApply = useCallback(async () => {
     try {
       JoblyApi.token = token;
       await JoblyApi.applyToJob(currentUser.username, jobId);
@@ -46,7 +56,7 @@ const ApplyButton = ({ jobId }) => {
     } catch (error) {
       console.error("There was an error applying for this job", error);
     }
-  };
+  }, [token, currentUser, jobId]);
 
   if (hasApplied === null) {
     console.log("Checking application status...");
