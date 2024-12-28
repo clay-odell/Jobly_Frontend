@@ -6,27 +6,26 @@ import useLocalStorage from "./useLocalStorageHook";
 
 const ApplyButton = ({ jobId }) => {
   const { currentUser, token } = useUser();
-  const [hasApplied, setHasApplied] = useLocalStorage(`hasApplied-${jobId}`, null);
+  const [hasApplied, setHasApplied] = useLocalStorage(
+    `hasApplied-${jobId}`,
+    null
+  );
 
   // Check if the current user has applied for the job
   const checkIfApplied = useCallback(async () => {
     if (!token || !currentUser) {
-      console.log("Token or currentUser is missing");
-      return; // Ensure the token and currentUser are present
+      return; 
     }
 
     try {
       JoblyApi.token = token; // Ensure the token is set
       const response = await JoblyApi.getUser(currentUser.username);
-      console.log("Fetched user data:", response);
 
       if (response?.user?.applications) {
         const appliedJobIds = response.user.applications;
         setHasApplied(appliedJobIds.includes(jobId));
-        console.log("Has applied:", appliedJobIds.includes(jobId));
       } else {
         setHasApplied(false);
-        console.log("User has no applications");
       }
     } catch (error) {
       console.error("There was an error fetching applied jobs", error);
@@ -51,7 +50,6 @@ const ApplyButton = ({ jobId }) => {
   };
 
   if (hasApplied === null) {
-    console.log("Checking application status...");
     return (
       <Button variant="primary" disabled>
         Loading...
