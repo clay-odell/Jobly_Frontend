@@ -32,7 +32,7 @@ function App() {
     const fetchUserInfo = async () => {
       if (token) {
         try {
-          JoblyApi.token = token;
+          
           const { username } = jwtDecode(token);
           const response = await JoblyApi.getUser(username);
           setCurrentUser(response.user);
@@ -48,7 +48,7 @@ function App() {
   const login = async (data) => {
     try {
       const { token, user } = await JoblyApi.userLogin(data);
-      JoblyApi.token = token;
+      
       setToken(token);
       setCurrentUser(user);
     } catch (error) {
