@@ -1,4 +1,4 @@
-import { useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from 'jwt-decode';
 import { BrowserRouter as Router } from "react-router-dom";  
 import JoblyRoutes from "./JoblyRoutes";
@@ -11,16 +11,20 @@ import useLocalStorage from "./useLocalStorageHook";
 function App() {
   const [currentUser, setCurrentUser] = useLocalStorage("currentUser", null);
   const [token, setToken] = useLocalStorage("token", null);
-  const {setCurrentUser: setContextUser, setToken: setContextToken} = useUser();
+  const { setCurrentUser: setContextUser, setToken: setContextToken } = useUser();
   
-  //Syncs context and localStorage for user
+  // Syncs context and localStorage for user
   useEffect(() => {
-    setContextUser(currentUser);
+    if (currentUser !== setContextUser) {
+      setContextUser(currentUser);
+    }
   }, [currentUser, setContextUser]);
 
-  //Syncs contexts and localStorage for token
+  // Syncs contexts and localStorage for token
   useEffect(() => {
-    setContextToken(token);
+    if (token !== setContextToken) {
+      setContextToken(token);
+    }
   }, [token, setContextToken]);
 
   // Fetches user data on token change
@@ -39,11 +43,11 @@ function App() {
       }
     };
     fetchUserInfo();
-  }, [token]);
+  }, [token, setCurrentUser]);
 
   const login = async (data) => {
     try {
-      const {token, user} = await JoblyApi.userLogin(data);
+      const { token, user } = await JoblyApi.userLogin(data);
       JoblyApi.token = token;
       setToken(token);
       setCurrentUser(user);
@@ -55,6 +59,7 @@ function App() {
   const signup = async (data) => {
     try {
       const response = await JoblyApi.registerUser(data);
+      // Handle the response as needed
     } catch (error) {
       console.error("There was an error registering your account", error);
     }
@@ -67,12 +72,10 @@ function App() {
   };
 
   return (
-    <>
     <Router>
-      <NavBar  />
-      <JoblyRoutes login={login} signup={signup}  logout={logout} />
-      </Router>
-    </>
+      <NavBar />
+      <JoblyRoutes login={login} signup={signup} logout={logout} />
+    </Router>
   );
 }
 
