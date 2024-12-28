@@ -26,6 +26,8 @@ const ApplyButton = ({ jobId }) => {
         if (hasApplied !== hasAppliedStatus) {
           setHasApplied(hasAppliedStatus);
           console.log("Has applied status updated to:", hasAppliedStatus);
+        } else {
+          console.log("No change in hasApplied status, not updating state");
         }
       } else {
         if (hasApplied !== false) {
