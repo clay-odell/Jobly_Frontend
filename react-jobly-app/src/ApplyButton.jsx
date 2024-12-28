@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import { useUser } from "./UserContext";
 import JoblyApi from "../../api";
@@ -8,44 +8,44 @@ const ApplyButton = ({ jobId }) => {
   const { currentUser, token } = useUser();
   const [hasApplied, setHasApplied] = useLocalStorage(`hasApplied-${jobId}`, null);
 
-  const checkIfApplied = useCallback(async () => {
-    if (!token || !currentUser) {
-      console.log("Token or currentUser is missing");
-      return;
-    }
-
-    try {
-      JoblyApi.token = token;
-      const response = await JoblyApi.getUser(currentUser.username);
-      console.log("Fetched user data:", response);
-
-      if (response.user && response.user.applications) {
-        const appliedJobIds = response.user.applications;
-        const hasAppliedStatus = appliedJobIds.includes(jobId);
-        console.log(`Current hasApplied: ${hasApplied}, New hasAppliedStatus: ${hasAppliedStatus}`);
-        if (hasApplied !== hasAppliedStatus) {
-          setHasApplied(hasAppliedStatus);
-          console.log("Has applied status updated to:", hasAppliedStatus);
-        } else {
-          console.log("No change in hasApplied status, not updating state");
-        }
-      } else {
-        if (hasApplied !== false) {
-          setHasApplied(false);
-          console.log("User has no applications or data structure is different, setting hasApplied to false");
-        }
+  useEffect(() => {
+    const checkIfApplied = async () => {
+      if (!token || !currentUser) {
+        console.log("Token or currentUser is missing");
+        return;
       }
-    } catch (error) {
-      console.error("There was an error fetching applied jobs", error);
-      setHasApplied(false);
-    }
+
+      try {
+        JoblyApi.token = token;
+        const response = await JoblyApi.getUser(currentUser.username);
+        console.log("Fetched user data:", response);
+
+        if (response.user && response.user.applications) {
+          const appliedJobIds = response.user.applications;
+          const hasAppliedStatus = appliedJobIds.includes(jobId);
+          console.log(`Current hasApplied: ${hasApplied}, New hasAppliedStatus: ${hasAppliedStatus}`);
+          if (hasApplied !== hasAppliedStatus) {
+            setHasApplied(hasAppliedStatus);
+            console.log("Has applied status updated to:", hasAppliedStatus);
+          } else {
+            console.log("No change in hasApplied status, not updating state");
+          }
+        } else {
+          if (hasApplied !== false) {
+            setHasApplied(false);
+            console.log("User has no applications or data structure is different, setting hasApplied to false");
+          }
+        }
+      } catch (error) {
+        console.error("There was an error fetching applied jobs", error);
+        setHasApplied(false);
+      }
+    };
+
+    checkIfApplied();
   }, [currentUser, jobId, token, hasApplied]);
 
-  useEffect(() => {
-    checkIfApplied();
-  }, [checkIfApplied]);
-
-  const handleApply = useCallback(async () => {
+  const handleApply = async () => {
     if (hasApplied) {
       console.log("User has already applied to this job");
       return;
@@ -59,7 +59,7 @@ const ApplyButton = ({ jobId }) => {
     } catch (error) {
       console.error("There was an error applying for this job", error);
     }
-  }, [token, currentUser, jobId, hasApplied]);
+  };
 
   if (hasApplied === null) {
     console.log("Checking application status...");
