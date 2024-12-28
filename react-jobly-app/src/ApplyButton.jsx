@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "react-bootstrap/Button";
 import { useUser } from "./UserContext";
 import JoblyApi from "../../api";
@@ -7,7 +7,6 @@ import useLocalStorage from "./useLocalStorageHook";
 const ApplyButton = ({ jobId }) => {
   const { currentUser, token } = useUser();
   const [hasApplied, setHasApplied] = useLocalStorage(`hasApplied-${jobId}`, null);
-  const prevHasAppliedRef = useRef(null); // Use useRef to track the previous hasApplied state
 
   useEffect(() => {
     const checkIfApplied = async () => {
@@ -19,26 +18,24 @@ const ApplyButton = ({ jobId }) => {
         if (response?.user?.applications) {
           const appliedJobIds = response.user.applications;
           const hasAppliedStatus = appliedJobIds.includes(jobId);
-          // Check if we need to update the state
-          if (prevHasAppliedRef.current !== hasAppliedStatus) {
+          if (hasApplied !== hasAppliedStatus) {
             setHasApplied(hasAppliedStatus);
-            prevHasAppliedRef.current = hasAppliedStatus; // Update the ref to the current state
           }
         } else {
-          if (prevHasAppliedRef.current !== false) {
+          if (hasApplied !== false) {
             setHasApplied(false);
-            prevHasAppliedRef.current = false; // Update the ref to the current state
           }
         }
       } catch (error) {
         console.error("There was an error fetching applied jobs", error);
         setHasApplied(false);
-        prevHasAppliedRef.current = false; // Update the ref to the current state
       }
     };
 
-    checkIfApplied();
-  }, [currentUser, jobId, token]);
+    if (hasApplied === null) {
+      checkIfApplied(); // Only check if hasApplied is null
+    }
+  }, [currentUser, jobId, token, hasApplied]);
 
   const handleApply = async () => {
     if (hasApplied) return; // Prevent multiple applications
@@ -46,7 +43,6 @@ const ApplyButton = ({ jobId }) => {
     try {
       await JoblyApi.applyToJob(currentUser.username, jobId);
       setHasApplied(true);
-      prevHasAppliedRef.current = true; // Update the ref to the current state
     } catch (error) {
       console.error("There was an error applying for this job", error);
     }
@@ -54,8 +50,8 @@ const ApplyButton = ({ jobId }) => {
 
   if (hasApplied === null) {
     return (
-      <Button variant="primary" disabled>
-        Loading...
+      <Button variant="primary">
+        Apply
       </Button>
     );
   }
