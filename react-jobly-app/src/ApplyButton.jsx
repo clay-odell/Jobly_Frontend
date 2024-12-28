@@ -8,38 +8,50 @@ const ApplyButton = ({ jobId }) => {
   const { currentUser, token } = useUser();
   const [hasApplied, setHasApplied] = useLocalStorage(`hasApplied-${jobId}`, null);
 
+  // Check if the current user has applied for the job
   const checkIfApplied = useCallback(async () => {
-    if (!token || !currentUser) return; // Ensure the token and currentUser are present
+    if (!token || !currentUser) {
+      console.log("Token or currentUser is missing");
+      return; // Ensure the token and currentUser are present
+    }
 
     try {
       JoblyApi.token = token; // Ensure the token is set
       const response = await JoblyApi.getUser(currentUser.username);
+      console.log("Fetched user data:", response);
 
       if (response?.user?.applications) {
         const appliedJobIds = response.user.applications;
         setHasApplied(appliedJobIds.includes(jobId));
+        console.log("Has applied:", appliedJobIds.includes(jobId));
       } else {
         setHasApplied(false);
+        console.log("User has no applications");
       }
     } catch (error) {
       console.error("There was an error fetching applied jobs", error);
       setHasApplied(false);
     }
-  }, [currentUser, jobId, token]);
+  }, [currentUser, jobId, token, setHasApplied]);
 
-  
+  useEffect(() => {
+    checkIfApplied();
+  }, [checkIfApplied]);
 
+  // Handle applying to a job
   const handleApply = async () => {
     try {
       JoblyApi.token = token; // Ensure the token is set
       await JoblyApi.applyToJob(currentUser.username, jobId);
       setHasApplied(true);
+      console.log("Job application successful");
     } catch (error) {
       console.error("There was an error applying for this job", error);
     }
   };
 
   if (hasApplied === null) {
+    console.log("Checking application status...");
     return (
       <Button variant="primary" disabled>
         Loading...
