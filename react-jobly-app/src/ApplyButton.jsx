@@ -15,9 +15,6 @@ const ApplyButton = ({ jobId }) => {
     }
 
     try {
-      JoblyApi.token = token;
-      const response = await JoblyApi.getUser(currentUser.username);
-      console.log("Fetched user data:", response);
 
       if (response && response.user && response.user.applications) {
         const appliedJobIds = response.user.applications;
@@ -46,7 +43,7 @@ const ApplyButton = ({ jobId }) => {
 
   const handleApply = useCallback(async () => {
     try {
-      JoblyApi.token = token;
+      
       await JoblyApi.applyToJob(currentUser.username, jobId);
       setHasApplied(true);
       console.log("Job application successful");
