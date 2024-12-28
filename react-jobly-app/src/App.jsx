@@ -1,56 +1,61 @@
 import { useEffect, useCallback } from "react";
-import { jwtDecode } from 'jwt-decode';
-import { BrowserRouter as Router } from "react-router-dom";  
+import { BrowserRouter as Router } from "react-router-dom";
 import JoblyRoutes from "./JoblyRoutes";
 import NavBar from "./NavBar";
 import "./App.css";
-import JoblyApi from "../../api"; 
+import JoblyApi from "../../api";
 import { useUser } from "./UserContext";
 import useLocalStorage from "./useLocalStorageHook";
+import {jwtDecode} from 'jwt-decode';
 
 function App() {
-  const [currentUser, setCurrentUser] = useLocalStorage("currentUser", null);
-  const [token, setToken] = useLocalStorage("token", null);
-  const { setCurrentUser: setContextUser, setToken: setContextToken } = useUser();
-  
+  const [localCurrentUser, setLocalCurrentUser] = useLocalStorage("currentUser", null);
+  const [localToken, setLocalToken] = useLocalStorage("token", null);
+  const { currentUser, setCurrentUser, token, setToken } = useUser();
+
   const syncContextWithLocalStorage = useCallback(() => {
-    if (currentUser !== setContextUser) {
-      setContextUser(currentUser);
+    if (localCurrentUser !== currentUser) {
+      setCurrentUser(localCurrentUser);
     }
-    if (token !== setContextToken) {
-      setContextToken(token);
+    if (localToken !== token) {
+      setToken(localToken);
     }
-  }, [currentUser, token, setContextUser, setContextToken]);
+  }, [localCurrentUser, localToken, currentUser, token, setCurrentUser, setToken]);
 
   const fetchUserInfo = useCallback(async () => {
-    if (token) {
+    if (localToken) {
       try {
-        JoblyApi.token = token;
-        const { username } = jwtDecode(token);
+        JoblyApi.token = localToken;
+        const { username } = jwtDecode(localToken);
         const response = await JoblyApi.getUser(username);
-        setCurrentUser(response.user);
+        if (response.user && JSON.stringify(response.user) !== JSON.stringify(localCurrentUser)) {
+          setLocalCurrentUser(response.user);
+        }
       } catch (error) {
         console.error("There was an error fetching user information", error);
-        setCurrentUser(null);
+        setLocalCurrentUser(null);
       }
     }
-  }, [token, setCurrentUser]);
+  }, [localToken, localCurrentUser, setLocalCurrentUser]);
 
   useEffect(() => {
     syncContextWithLocalStorage();
+  }, [syncContextWithLocalStorage]);
+
+  useEffect(() => {
     fetchUserInfo();
-  }, [syncContextWithLocalStorage, fetchUserInfo]);
+  }, [localToken, fetchUserInfo]);
 
   const login = useCallback(async (data) => {
     try {
       const { token, user } = await JoblyApi.userLogin(data);
       JoblyApi.token = token;
-      setToken(token);
-      setCurrentUser(user);
+      setLocalToken(token);
+      setLocalCurrentUser(user);
     } catch (error) {
       console.error("There was an error logging in", error);
     }
-  }, [setToken, setCurrentUser]);
+  }, [setLocalToken, setLocalCurrentUser]);
 
   const signup = useCallback(async (data) => {
     try {
@@ -61,10 +66,10 @@ function App() {
   }, []);
 
   const logout = useCallback(() => {
-    setCurrentUser(null);
-    setToken(null);
+    setLocalCurrentUser(null);
+    setLocalToken(null);
     JoblyApi.token = null;
-  }, [setCurrentUser, setToken]);
+  }, [setLocalCurrentUser, setLocalToken]);
 
   return (
     <Router>
