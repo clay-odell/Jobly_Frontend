@@ -13,8 +13,8 @@ const ApplyButton = ({ jobId }) => {
       if (!token || !currentUser) return; // Ensure the token and currentUser are present
 
       try {
-        JoblyApi.token = token; // Ensure the token is set
         const response = await JoblyApi.getUser(currentUser.username);
+        console.log("Fetched user data:", response);
 
         if (response?.user?.applications) {
           const appliedJobIds = response.user.applications;
@@ -40,7 +40,6 @@ const ApplyButton = ({ jobId }) => {
     if (hasApplied) return; // Prevent multiple applications
 
     try {
-      JoblyApi.token = token; // Ensure the token is set
       await JoblyApi.applyToJob(currentUser.username, jobId);
       setHasApplied(true);
     } catch (error) {
