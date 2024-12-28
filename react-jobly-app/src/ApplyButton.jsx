@@ -18,9 +18,14 @@ const ApplyButton = ({ jobId }) => {
 
         if (response?.user?.applications) {
           const appliedJobIds = response.user.applications;
-          setHasApplied(appliedJobIds.includes(jobId));
+          const hasAppliedStatus = appliedJobIds.includes(jobId);
+          if (hasApplied !== hasAppliedStatus) {
+            setHasApplied(hasAppliedStatus);
+          }
         } else {
-          setHasApplied(false);
+          if (hasApplied !== false) {
+            setHasApplied(false);
+          }
         }
       } catch (error) {
         console.error("There was an error fetching applied jobs", error);
@@ -29,9 +34,11 @@ const ApplyButton = ({ jobId }) => {
     };
 
     checkIfApplied();
-  }, [currentUser, jobId, token]); // Removed hasApplied from dependencies to avoid infinite loop
+  }, [currentUser, jobId, token]);
 
   const handleApply = async () => {
+    if (hasApplied) return; // Prevent multiple applications
+
     try {
       JoblyApi.token = token; // Ensure the token is set
       await JoblyApi.applyToJob(currentUser.username, jobId);
