@@ -8,11 +8,10 @@ const ApplyButton = ({ jobId }) => {
   const { currentUser, token } = useUser();
   const [hasApplied, setHasApplied] = useLocalStorage(`hasApplied-${jobId}`, null);
 
-  // Memoize the checkIfApplied function
   const checkIfApplied = useCallback(async () => {
     if (!token || !currentUser) {
       console.log("Token or currentUser is missing");
-      return; // Ensure the token and currentUser are present
+      return;
     }
 
     try {
@@ -20,7 +19,7 @@ const ApplyButton = ({ jobId }) => {
       const response = await JoblyApi.getUser(currentUser.username);
       console.log("Fetched user data:", response);
 
-      if (response?.user?.applications) {
+      if (response && response.user && response.user.applications) {
         const appliedJobIds = response.user.applications;
         const hasAppliedStatus = appliedJobIds.includes(jobId);
         if (hasApplied !== hasAppliedStatus) {
@@ -45,7 +44,6 @@ const ApplyButton = ({ jobId }) => {
     checkIfApplied();
   }, [checkIfApplied]);
 
-  // Handle applying to a job
   const handleApply = useCallback(async () => {
     try {
       JoblyApi.token = token;
