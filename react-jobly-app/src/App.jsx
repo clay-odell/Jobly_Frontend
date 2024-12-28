@@ -1,5 +1,6 @@
 import { useEffect, useState} from "react";
-import { jwtDecode } from 'jwt-decode';  
+import { jwtDecode } from 'jwt-decode';
+import { BrowserRouter as Router } from "react-router-dom";  
 import JoblyRoutes from "./JoblyRoutes";
 import NavBar from "./NavBar";
 import "./App.css";
@@ -67,8 +68,10 @@ function App() {
 
   return (
     <>
+    <Router>
       <NavBar  />
       <JoblyRoutes login={login} signup={signup}  logout={logout} />
+      </Router>
     </>
   );
 }
