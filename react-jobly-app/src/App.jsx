@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useCallback } from "react";
 import { jwtDecode } from 'jwt-decode';
 import { BrowserRouter as Router } from "react-router-dom";  
 import JoblyRoutes from "./JoblyRoutes";
@@ -13,63 +13,58 @@ function App() {
   const [token, setToken] = useLocalStorage("token", null);
   const { setCurrentUser: setContextUser, setToken: setContextToken } = useUser();
   
-  // Syncs context and localStorage for user
-  useEffect(() => {
+  const syncContextWithLocalStorage = useCallback(() => {
     if (currentUser !== setContextUser) {
       setContextUser(currentUser);
     }
-  }, [currentUser, setContextUser]);
-
-  // Syncs contexts and localStorage for token
-  useEffect(() => {
     if (token !== setContextToken) {
       setContextToken(token);
     }
-  }, [token, setContextToken]);
+  }, [currentUser, token, setContextUser, setContextToken]);
 
-  // Fetches user data on token change
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      if (token) {
-        try {
-          
-          const { username } = jwtDecode(token);
-          const response = await JoblyApi.getUser(username);
-          setCurrentUser(response.user);
-        } catch (error) {
-          console.error("There was an error fetching user information", error);
-          setCurrentUser(null);
-        }
+  const fetchUserInfo = useCallback(async () => {
+    if (token) {
+      try {
+        JoblyApi.token = token;
+        const { username } = jwtDecode(token);
+        const response = await JoblyApi.getUser(username);
+        setCurrentUser(response.user);
+      } catch (error) {
+        console.error("There was an error fetching user information", error);
+        setCurrentUser(null);
       }
-    };
-    fetchUserInfo();
+    }
   }, [token, setCurrentUser]);
 
-  const login = async (data) => {
+  useEffect(() => {
+    syncContextWithLocalStorage();
+    fetchUserInfo();
+  }, [syncContextWithLocalStorage, fetchUserInfo]);
+
+  const login = useCallback(async (data) => {
     try {
       const { token, user } = await JoblyApi.userLogin(data);
-      
+      JoblyApi.token = token;
       setToken(token);
       setCurrentUser(user);
     } catch (error) {
       console.error("There was an error logging in", error);
     }
-  };
+  }, [setToken, setCurrentUser]);
 
-  const signup = async (data) => {
+  const signup = useCallback(async (data) => {
     try {
-      const response = await JoblyApi.registerUser(data);
-      // Handle the response as needed
+      await JoblyApi.registerUser(data);
     } catch (error) {
       console.error("There was an error registering your account", error);
     }
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setCurrentUser(null);
     setToken(null);
     JoblyApi.token = null;
-  };
+  }, [setCurrentUser, setToken]);
 
   return (
     <Router>
