@@ -31,7 +31,7 @@ const ApplyButton = ({ jobId }) => {
       console.error("There was an error fetching applied jobs", error);
       setHasApplied(false);
     }
-  }, [currentUser, jobId, token, setHasApplied]);
+  }, [currentUser, jobId, token]);
 
   useEffect(() => {
     checkIfApplied();
